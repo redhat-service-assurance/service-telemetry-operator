@@ -49,3 +49,19 @@
     - this_cloud.events is defined
     - this_cloud.events.collectors is defined
     - this_cloud.events is iterable
+
+- name: Deploy Logs Smart Gateway instance
+  vars:
+    data_type: 'logs'
+    manifest: './manifest_smartgateway_logs.j2'
+    this_smartgateway: "{{ meta.name }}-{{ this_cloud.name }}-{{ this_collector.collector_type[:4] }}-log"
+  include_tasks: base_smartgateway.yml
+  loop: "{{ this_cloud.logs.collectors }}"
+  loop_control:
+    loop_var: this_collector
+    label: "{{ this_collector.collector_type }}"
+  when:
+  - servicetelemetry_vars.backends.logs.loki.enabled
+  - this_cloud.logs is defined
+  - this_cloud.logs.collectors is defined
+  - this_cloud.logs is iterable

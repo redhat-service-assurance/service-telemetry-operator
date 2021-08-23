@@ -48,4 +48,14 @@ spec:
         timeField: generated
         esVersion: 70
 {% endif %}
+
+{% if servicetelemetry_vars.backends.logs.loki.enabled %}
+    - access: proxy
+      editable: true
+      isDefault: false
+      name: STFLoki
+      type: loki
+      url: 'http://loki-query-frontend-http-lokistack:3100'
+      version: 1
+{% endif %}
   name: {{ meta.name }}-ds-stf.yaml

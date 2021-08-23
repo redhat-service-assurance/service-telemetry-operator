@@ -64,3 +64,97 @@
 
 - name: Load Service Telemetry Operator CSV
   shell: oc apply -f working/service-telemetry-operator-bundle/manifests/service-telemetry-operator.clusterserviceversion.yaml -n "{{ namespace }}"
+
+# --- Loki Operator ---
+- name: Prevent Loki Operator from building operator-sdk
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/.bingo/Variables.mk"
+    regexp: '^.*modfile=operator-sdk.mod.*$'
+    replace: ''
+
+- name: Prevent Loki Operator from putting authentication on /metrics
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/config/overlays/openshift/kustomization.yaml"
+    regexp: '{{ item }}'
+    replace: ''
+  loop:
+    - "patchesStrategicMerge:"
+    - "- manager_auth_proxy_patch.yaml"
+    - "- manager_related_image_patch.yaml"
+    - "- manager_run_flags_patch.yaml"
+    - "- prometheus_service_monitor_patch.yaml"
+
+- name: Generate Loki Operator CSV
+  make:
+    chdir: "{{ playbook_dir }}/working/loki-operator"
+    target: bundle
+    params:
+        REGISTRY_ORG: infrawatch
+        OPERATOR_SDK: "{{ playbook_dir }}/working/operator-sdk-{{ new_operator_sdk_version }}"
+
+- name: Replace namespace in loki-operator CSV
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/bundle/manifests/loki-operator.clusterserviceversion.yaml"
+    regexp: 'placeholder'
+    replace: '{{ namespace }}'
+
+- name: Replace image path in loki-operator CSV
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/bundle/manifests/loki-operator.clusterserviceversion.yaml"
+    regexp: '{{ item }}'
+    replace: '{{ loki_operator_image_path }}'
+  loop:
+    - quay.io/infrawatch/loki-operator:v0.0.1
+    - quay.io/openshift-logging/loki-operator:v0.0.1
+
+- name: Replace namespace in loki-operator
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/config/overlays/development/kustomization.yaml"
+    regexp: 'default'
+    replace: '{{ namespace }}'
+
+- name: Remove additional manager deployment
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/config/overlays/development/kustomization.yaml"
+    regexp: '^.*manager'
+    replace: ''
+
+- name: Setup PVs for Loki in crc
+  shell:
+    cmd: ./create_standard_pvs.sh 3
+  when:
+  - is_crc | bool
+  - __service_telemetry_logs_enabled | bool
+
+- name: Replace namespace in S3 secret
+  replace:
+    path: "{{ playbook_dir }}/working/loki-operator/config/overlays/development/minio/secret.yaml"
+    regexp: 'default'
+    replace: 'service-telemetry'
+
+- block:
+  - name: Remove minio deployment
+    replace:
+      path: "{{ playbook_dir }}/working/loki-operator/config/overlays/development/kustomization.yaml"
+      regexp: '^.*minio'
+      replace: ''
+  when: not __deploy_minio_enabled | bool
+
+- name: Deploy Loki Operator
+  make:
+    chdir: "{{ playbook_dir }}/working/loki-operator"
+    target: deploy
+    params:
+        REGISTRY_ORG: infrawatch
+        OPERATOR_SDK: "{{ playbook_dir }}/working/operator-sdk-{{ new_operator_sdk_version }}"
+
+- name: Load Loki Operator bundle manifests
+  command: oc apply -f working/loki-operator/bundle/manifests/{{ item }} -n "{{ namespace }}"
+  loop:
+  - loki.openshift.io_lokistacks.yaml
+  - loki-operator-controller-manager-metrics-service_v1_service.yaml
+  - loki-operator-manager-config_v1_configmap.yaml
+  - loki-operator-metrics-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml
+  - loki-operator-prometheus_rbac.authorization.k8s.io_v1_rolebinding.yaml
+  - loki-operator-prometheus_rbac.authorization.k8s.io_v1_role.yaml
+  - loki-operator.clusterserviceversion.yaml

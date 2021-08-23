@@ -35,6 +35,10 @@
 - name: Create Alertmanager instance
   include_tasks: component_alertmanager.yml
 
+# --> backends.logs
+- name: Create Loki instance
+  include_tasks: component_loki.yml
+
 # --> graphing
 - name: Deploy graphing
   block:

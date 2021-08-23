@@ -27,6 +27,14 @@
               enabled: {{ __service_telemetry_metrics_enabled }}
               storage:
                 strategy: {{ "ephemeral" if __service_telemetry_storage_ephemeral_enabled else "persistent" }}
+          logs:
+            loki:
+              enabled: {{ __service_telemetry_logs_enabled }}
+              replicationFactor: 1
+              flavor: 1x.extra-small
+              storage:
+                objectStorageSecret: test
+                storageClass: standard
         highAvailability:
           enabled: {{ __service_telemetry_high_availability_enabled }}
   when: service_telemetry_manifest is not defined

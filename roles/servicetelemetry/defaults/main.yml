@@ -44,6 +44,24 @@ servicetelemetry_defaults:
             storage_class: ""
             storage_selector: {}
             pvc_storage_request: 20Gi
+    logs:
+      loki:
+        enabled: false
+        replication_factor: 1
+        flavor: 1x.extra-small
+        storage:
+          object_storage_secret: ""
+          storage_class: ""
+        compactor:
+          replicas: ""
+        distributor:
+          replicas: ""
+        ingester:
+          replicas: ""
+        querier:
+          replicas: ""
+        query_frontend:
+          replicas: ""
 
   transports:
     qdr:
@@ -82,6 +100,11 @@ servicetelemetry_defaults:
             debug_enabled: false
           - collector_type: ceilometer
             subscription_address: anycast/ceilometer/event.sample
+            debug_enabled: false
+      logs:
+        collectors:
+          - collector_type: rsyslog
+            subscription_address: rsyslog/logs
             debug_enabled: false
 
 

@@ -58,3 +58,20 @@
         repo: https://github.com/infrawatch/prometheus-webhook-snmp
         dest: working/prometheus-webhook-snmp
         version: master
+
+# Branches for Loki Operator don't work the same as with other repositories.
+# We don't have write access to the upstream repository to create our own
+# branches there.
+- name: Get Loki Operator
+  block:
+    - name: Try cloning same-named branch or override branch
+      git:
+        repo: https://github.com/viaq/loki-operator
+        dest: working/loki-operator
+        version: "{{ loki_operator_branch | default(branch, true) }}"
+  rescue:
+    - name: Get master branch because same-named doesn't exist
+      git:
+        repo: https://github.com/viaq/loki-operator
+        dest: working/loki-operator
+        version: master

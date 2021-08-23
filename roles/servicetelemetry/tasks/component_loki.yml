@@ -1,0 +1,14 @@
+- name: Lookup template
+  debug:
+    msg: "{{ lookup('template', './manifest_loki.j2') | from_yaml }}"
+
+- name: Set default Loki manifest
+  set_fact:
+    loki_manifest: "{{ lookup('template', './manifest_loki.j2') | from_yaml }}"
+  when: loki_manifest is not defined
+
+- name: Create an instance of Loki
+  k8s:
+    state: '{{ "present" if servicetelemetry_vars.backends.logs.loki.enabled else "absent" }}'
+    definition:
+      '{{ loki_manifest }}'

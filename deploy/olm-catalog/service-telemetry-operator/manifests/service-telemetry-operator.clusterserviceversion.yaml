@@ -55,6 +55,18 @@ metadata:
                     "strategy": "persistent"
                   }
                 }
+              },
+              "logs": {
+                "loki": {
+                  "enabled": false,
+                  "flavor": "1.extra-small",
+                  "replicationFactor": 1,
+                  "storage": {
+                    "objectStorageSecret": "test",
+                    "storageClass": "standard"
+                    }
+                  }
+                }
               }
             },
             "graphing": {
@@ -355,6 +367,78 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Advanced
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
         - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Enable Loki storage for logs backend.
+        displayName: Loki enabled
+        path: backends.logs.loki.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Loki replication factor.
+          Choose how many ingesters and queriers to create.
+        displayName: Loki replication factor
+        path: backends.logs.loki.replicationFactor
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Loki flavor.
+          Choose flavor of the loki deployment. This determines
+          how much resources each loki microservice has.
+        displayName: Loki flavor
+        path: backends.logs.loki.flavor
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:select:1x.extra-small
+        - urn:alm:descriptor:com.tectonic.ui:select:1x.small
+        - urn:alm:descriptor:com.tectonic.ui:select:1x.medium
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Secret containing information required for S3 object storage.
+        displayName: Loki object storage secret
+        path: backends.logs.loki.storage.objectStorageSecret
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:io.kubernetes:Secret
+      - description: Storage class configuration for Loki persistent storage
+        displayName: Loki storage class
+        path: backends.logs.loki.storage.storageClass
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:io.kubernetes:StorageClass
+      - description: Number of compactor Loki microservice replicas
+        displayName: Compactor replicas
+        path: backends.logs.loki.compactor.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Number of compactor Loki microservice replicas
+        displayName: Distributor replicas
+        path: backends.logs.loki.distributor.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Number of compactor Loki microservice replicas
+        displayName: Ingester replicas
+        path: backends.logs.loki.ingester.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Number of compactor Loki microservice replicas
+        displayName: Querier replicas
+        path: backends.logs.loki.querier.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Number of compactor Loki microservice replicas
+        displayName: Query frontend replicas
+        path: backends.logs.loki.queryFrontend.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldGroup:Backends
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+
       statusDescriptors:
       - description: Conditions provided by deployment
         displayName: Conditions

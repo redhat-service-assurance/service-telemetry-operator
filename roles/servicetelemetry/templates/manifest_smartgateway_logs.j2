@@ -1,0 +1,32 @@
+apiVersion: smartgateway.infra.watch/v2
+kind: SmartGateway
+metadata:
+  name: '{{ this_smartgateway }}'
+  namespace: '{{ meta.namespace }}'
+spec:
+{% if this_collector.debug_enabled is defined and this_collector.debug_enabled %}
+  logLevel: "debug"
+{% else %}
+  logLevel: "info"
+{% endif %}
+  handleErrors: true
+  size: {{ smartgateway_deployment_size }}
+  applications:
+  - config: |
+      connection: http://loki-distributor-http-lokistack.{{ meta.namespace }}.svc.cluster.local:3100
+      batchSize: {{ loki_batch_size | default('20') }}
+      maxWaitTime: {{ loki_max_wait_time | default('100') }}
+    name: loki
+  bridge:
+    amqpUrl: amqp://{{ meta.name }}-interconnect.{{ meta.namespace }}.svc.cluster.local:5673/{{ this_collector.subscription_address }}
+  transports:
+  - config: |
+      path: /tmp/smartgateway
+    handlers:
+    - name: logs
+      config: |
+        timestampField: "@timestamp"
+        messageField: "message"
+        severityField: "severity"
+        hostnameField: "host"
+    name: socket

@@ -12,6 +12,22 @@
     sg_core_image_path: "{{ __internal_registry_path }}/{{ namespace }}/sg-core:{{ sg_core_image_tag }}"
     sg_bridge_image_path: "{{ __internal_registry_path }}/{{ namespace }}/sg-bridge:{{ sg_bridge_image_tag }}"
     prometheus_webhook_snmp_image_path: "{{ __internal_registry_path }}/{{ namespace }}/prometheus-webhook-snmp:{{ prometheus_webhook_snmp_image_tag }}"
+    loki_operator_image_path: "{{ __internal_registry_path }}/{{ namespace }}/loki-operator:{{ loki_operator_image_tag }}"
+    loki_operator_bundle_image_path: "{{ __internal_registry_path }}/{{ namespace }}/loki-operator-bundle:{{ loki_operator_image_tag }}"
+
+- name: Get the node hostnames
+  set_fact:
+    nodes: "{{ lookup('k8s', kind='nodes') }}"
+
+- name: Find out if we are using crc
+  block:
+    - name: Try finding out for cluster with more than 1 node
+      set_fact:
+        is_crc: "{{ True if 'crc' in nodes[0].metadata.labels[\"kubernetes.io/hostname\"] else False }}"
+  rescue:
+    - name: Try finding out for cluster with only 1 node
+      set_fact:
+        is_crc: "{{ True if 'crc' in nodes.metadata.labels[\"kubernetes.io/hostname\"] else False }}"
 
 - name: Clear out existing CRDs so we don't conflict or fail merge
   k8s:
@@ -22,6 +38,7 @@
   loop:
     - smartgateways.smartgateway.infra.watch
     - servicetelemetrys.infra.watch
+    - lokistacks.loki.openshift.io
 
 - block:
   - name: Setup supporting repositories
@@ -29,10 +46,35 @@
     tags:
       - clone
 
+  - name: Get new operator sdk
+    command: ./get_new_operator_sdk.sh "{{ new_operator_sdk_version }}"
+
   - name: Setup supporting Operator subscriptions
     include_tasks: setup_base.yml
     tags:
       - deploy
+
+    # TLS verification support doesn't seem to be implemented in the operator yet
+  - block:
+    - name: Prepare for skip Loki TLS patch
+      replace:
+        path: "{{ playbook_dir }}/working/loki-operator/internal/manifests/internal/config/loki-config.yaml"
+        regexp: "\ \ \ \ insecure: false\n
+\ \ \ http_config:\n
+\ \ \ \ \ insecure_skip_verify: true"
+        replace: ""
+
+    - name: Skip Loki TLS verification
+      replace:
+        path: "{{ playbook_dir }}/working/loki-operator/internal/manifests/internal/config/loki-config.yaml"
+        regexp: "\ \ \ \ s3forcepathstyle: true"
+        replace: "\ \ \ \ s3forcepathstyle: true\n
+\ \ \ insecure: false\n
+\ \ \ http_config:\n
+\ \ \ \ \ insecure_skip_verify: true"
+    when:
+    - __loki_skip_tls_verify | bool
+
 
   - name: Create builds and artifacts
     include_tasks: create_builds.yml
@@ -42,6 +84,8 @@
       - { name: sg-core, dockerfile_path: build/Dockerfile, image_reference_name: sg_core_image_path, working_build_dir: ./working/sg-core }
       - { name: sg-bridge, dockerfile_path: build/Dockerfile, image_reference_name: sg_bridge_image_path, working_build_dir: ./working/sg-bridge }
       - { name: prometheus-webhook-snmp, dockerfile_path: Dockerfile, image_reference_name: prometheus_webhook_snmp_image_path, working_build_dir: ./working/prometheus-webhook-snmp }
+      - { name: loki-operator-bundle, dockerfile_path: bundle.Dockerfile, image_reference_name: loki_operator_bundle_image_path, working_build_dir: ./working/loki-operator }
+      - { name: loki-operator, dockerfile_path: Dockerfile, image_reference_name: loki_operator_image_path, working_build_dir: ./working/loki-operator }
     loop_control:
       loop_var: artifact
     tags:

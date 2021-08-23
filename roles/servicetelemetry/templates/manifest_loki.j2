@@ -1,0 +1,39 @@
+apiVersion: loki.openshift.io/v1beta1
+kind: LokiStack
+metadata:
+  name: lokistack
+  namespace: '{{ meta.namespace }}'
+spec:
+  size: {{ servicetelemetry_vars.backends.logs.loki.flavor }}
+  replicationFactor: {{ servicetelemetry_vars.backends.logs.loki.replication_factor }}
+  storage:
+    secret:
+      name: {{ servicetelemetry_vars.backends.logs.loki.storage.object_storage_secret }}
+  storageClassName: {{ servicetelemetry_vars.backends.logs.loki.storage.storage_class }}
+{% if servicetelemetry_vars.backends.logs.loki.compactor.replicas | length or
+      servicetelemetry_vars.backends.logs.loki.distributor.replicas | length or
+      servicetelemetry_vars.backends.logs.loki.ingester.replicas | length or
+      servicetelemetry_vars.backends.logs.loki.querier.replicas | length or
+      servicetelemetry_vars.backends.logs.loki.query_frontend.replicas | length %}
+  template:
+{% if servicetelemetry_vars.backends.logs.loki.compactor.replicas | length %}
+    compactor:
+      replicas: {{ servicetelemetry_vars.backends.logs.loki.compactor.replicas }}
+{% endif %}
+{% if servicetelemetry_vars.backends.logs.loki.distributor.replicas | length %}
+    distributor:
+      replicas: {{ servicetelemetry_vars.backends.logs.loki.distributor.replicas }}
+{% endif %}
+{% if servicetelemetry_vars.backends.logs.loki.ingester.replicas | length %}
+    ingester:
+      replicas: {{ servicetelemetry_vars.backends.logs.loki.ingester.replicas }}
+{% endif %}
+{% if servicetelemetry_vars.backends.logs.loki.querier.replicas | length %}
+    querier:
+      replicas: {{ servicetelemetry_vars.backends.logs.loki.querier.replicas }}
+{% endif %}
+{% if servicetelemetry_vars.backends.logs.loki.query_frontend.replicas | length %}
+    queryFrontend:
+      replicas: {{ servicetelemetry_vars.backends.logs.loki.query_frontend.replicas }}
+{% endif %}
+{% endif %}

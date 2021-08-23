@@ -149,6 +149,72 @@ spec:
                       type: object
                   type: object
               type: object
+            logs:
+              description: Logs related backend configuration.
+              properties:
+                loki:
+                  description: Logs storage backend Loki
+                  properties:
+                    enabled:
+                      description: Enable Loki as a storage backend for logs
+                      type: boolean
+                    replicationFactor:
+                      description: Loki replication factor
+                      type: string
+                    flavor:
+                      description: Loki flavor
+                      enum:
+                      - 1x.extra-small
+                      - 1x.small
+                      - 1x.medium
+                      type: string
+                    storage:
+                      description: Logs storage configuration for Loki
+                      properties:
+                        objectStorageSecret:
+                          description: Secret containing informaiton required for S3 object storage
+                          type: string
+                        storageClass:
+                          description: Storage class used for temporary log storage before they are forwarded to object storage or when querying.
+                          type: string
+                      type: object
+                    compactor:
+                      description: Template for the compactor microservice
+                      properties:
+                        replicas:
+                          description: Number of replicas for this microservice
+                          type: string
+                      type: object
+                    distributor:
+                      description: Template for the distributor microservice
+                      properties:
+                        replicas:
+                          description: Number of replicas for this microservice
+                          type: string
+                      type: object
+                    ingester:
+                      description: Template for the ingester microservice
+                      properties:
+                        replicas:
+                          description: Number of replicas for this microservice
+                          type: string
+                      type: object
+                    querier:
+                      description: Template for the querier microservice
+                      properties:
+                        replicas:
+                          description: Number of replicas for this microservice
+                          type: string
+                      type: object
+                    queryFrontend:
+                      description: Template for the query frontend microservice
+                      properties:
+                        replicas:
+                          description: Number of replicas for this microservice
+                          type: string
+                      type: object
+                  type: object
+              type: object
           type: object
         clouds:
           description: A list of cloud objects
@@ -197,6 +263,29 @@ spec:
                         subscriptionAddress:
                           description: Address to subscribe on the data transport
                             to receive telemetry.
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              logs:
+                description: Logs related configuration for this cloud object.
+                properties:
+                  collectors:
+                    description: List of available logs collectors for this cloud
+                      object.
+                    items:
+                      properties:
+                        collectorType:
+                          description: Set the collector type, value of 'rsyslog'
+                          enum:
+                          - rsyslog
+                          type: string
+                        debugEnabled:
+                          description: Enable console debugging. Default is 'false'.
+                          type: boolean
+                        subscriptionAddress:
+                          description: Address to subscribe on the data transport
+                            to receive notifications.
                           type: string
                       type: object
                     type: array

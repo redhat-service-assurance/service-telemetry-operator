@@ -33,6 +33,7 @@ rules:
   - elasticsearch.k8s.elastic.co
   - certmanager.k8s.io
   - integreatly.org
+  - loki.openshift.io
   resources:
   - '*'
   verbs:

@@ -13,11 +13,17 @@ __service_telemetry_high_availability_enabled: false
 __service_telemetry_metrics_enabled: true
 __service_telemetry_storage_ephemeral_enabled: false
 __service_telemetry_snmptraps_enabled: true
+__service_telemetry_logs_enabled: false
 __internal_registry_path: image-registry.openshift-image-registry.svc:5000
+
+__deploy_minio_enabled: false
+__loki_skip_tls_verify: false
 
 sgo_image_tag: latest
 sto_image_tag: latest
 sg_core_image_tag: latest
 sg_bridge_image_tag: latest
 prometheus_webhook_snmp_image_tag: latest
+loki_operator_image_tag: latest
+new_operator_sdk_version: v1.5.0
 namespace: service-telemetry

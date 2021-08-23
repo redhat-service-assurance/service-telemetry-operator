@@ -32,7 +32,10 @@ choose to override:
 | `__service_telemetry_metrics_enabled`           | {true,false}    | true                                             | Whether to enable metrics support in ServiceTelemetry                                                 |
 | `__service_telemetry_storage_ephemeral_enabled` | {true,false}    | false                                            | Whether to enable ephemeral storage support in ServiceTelemetry                                       |
 | `__service_telemetry_snmptraps_enabled`         | {true,false}    | true                                             | Whether to enable snmptraps delivery via Alertmanager receiver (prometheus-webhook-snmp)              |
+| `__service_telemetry_logs_enabled`              | {true,false}    | false                                            | Whether to enable logs support in ServiceTelemetry                                                    |
 | `__internal_registry_path`                      | <registry_path> | image-registry.openshift-image-registry.svc:5000 | Path to internal registry for image path                                                              |
+| `__deploy_minio_enabled`                        | {true,false}    | false                                            | Whether to deploy minio while deploying loki-operator for logging development purposes                |
+| `__loki_skip_tls_verify`                        | {true,false}    | false                                            | Whether to skip TLS verify for Loki S3 connection                                                     |
 
 
 Example Playbook
