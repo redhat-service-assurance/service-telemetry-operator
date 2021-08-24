@@ -10,7 +10,7 @@ spec:
     auth:
       disable_signout_menu: {{ servicetelemetry_vars.graphing.grafana.disable_signout_menu }}
     auth.anonymous:
-      enabled: true
+      enabled: {{ servicetelemetry_vars.graphing.grafana.auth_anonymous }}
     log:
       level: warn
       mode: console

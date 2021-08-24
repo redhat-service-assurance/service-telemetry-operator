@@ -59,6 +59,7 @@ servicetelemetry_defaults:
       admin_password: secret
       admin_user: root
       disable_signout_menu: false
+      auth_anonymous: true
 
   # 'clouds' object is not partially updatable like other objects. If 'clouds'
   # object is defined then the default is overwritten.
