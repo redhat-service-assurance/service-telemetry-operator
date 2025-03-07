@@ -32,6 +32,7 @@
       args:
         chdir: "{{ base_dir }}/working/service-telemetry-framework-index/"
 
+# delete from here
     - name: Set the csv_dest based on whether zuul is used or not
       ansible.builtin.set_fact:
         csv_dest: "{{ zuul.executor.work_root if zuul is defined else base_dir + '/working/service-telemetry-framework-index/' }}"
@@ -67,12 +68,39 @@
       ansible.builtin.set_fact:
         sto_prebuilt_bundle_version: "{{ sto_prebuilt_bundle_csv.spec.version }}"
         sgo_prebuilt_bundle_version: "{{ sgo_prebuilt_bundle_csv.spec.version }}"
+# Delete to here
 
     - name: Get STO and SGO bundle image tags (from name)
       ansible.builtin.set_fact:
         sto_prebuilt_bundle_tag: "{{ __service_telemetry_bundle_image_path | split(':') | last }}"
         sgo_prebuilt_bundle_tag: "{{ __smart_gateway_bundle_image_path | split(':') | last }}"
 
+## test from here
+    - name: Slurp STO bundle CSV file
+      ansible.builtin.slurp:
+        src: "{{ base_dir }}/working/service-telemetry-framework-index/service-telemetry-operator.clusterserviceversion.yaml"
+      register: sto_file
+
+    - name: Slurp SGO bundle CSV file
+      ansible.builtin.slurp:
+        src: "{{ base_dir }}/working/service-telemetry-framework-index/smart-gateway-operator.clusterserviceversion.yaml"
+      register: sgo_file
+
+    - name: Set the bundle version and package name from CSV
+      ansible.builtin.set_fact:
+        slurp_sto_prebuilt_bundle_version: "{{ (sto_file.content | b64decode | from_yaml).spec.version }}"
+        slurp_sto_prebuilt_bundle_package_name: "{{ (sto_file.content | b64decode | from_yaml).metadata.name }}"
+        slurp_sgo_prebuilt_bundle_version: "{{ (sgo_file.content | b64decode | from_yaml).spec.version }}"
+        slurp_sgo_prebuilt_bundle_package_name: "{{ (sgo_file.content | b64decode | from_yaml).metadata.name }}"
+    - name: TEMP Compare slurp and fetch results
+      assert:
+        that:
+          - 'slurp_sto_prebuilt_bundle_version == sto_prebuilt_bundle_version'
+          - 'slurp_sto_prebuilt_bundle_package_name == sto_prebuilt_bundle_package_name'
+          - 'slurp_sgo_prebuilt_bundle_version == sgo_prebuilt_bundle_version'
+          - 'slurp_sgo_prebuilt_bundle_package_name == sgo_prebuilt_bundle_package_name'
+
+## end test
     - name: Set info variables from provided pre-built bundles
       ansible.builtin.set_fact:
         sto_bundle_info:
